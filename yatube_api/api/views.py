@@ -7,9 +7,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from posts.models import Comment, Follow, Group, Post
 from api.serializers import (CommentSerializer, FollowSerializer,
                              GroupSerializer, PostSerializer)
-from .permissions import AuthorOnly, ReadOnly
+from .permissions import AuthorOrReadOnly
 
 User = get_user_model()
+
+
+class CreateListViewset(mixins.CreateModelMixin, mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+    pass
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -17,15 +22,10 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (AuthorOnly,)
+    permission_classes = (AuthorOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    def get_permissions(self):
-        if self.action == 'retrieve':
-            return (ReadOnly(),)
-        return super().get_permissions()
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -38,7 +38,7 @@ class CommentViewset(viewsets.ModelViewSet):
     """ViewSet модели Comment."""
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (AuthorOnly,)
+    permission_classes = (AuthorOrReadOnly,)
 
     def get_post(self):
         """Получение поста по post_id."""
@@ -54,18 +54,12 @@ class CommentViewset(viewsets.ModelViewSet):
             post=self.get_post()
         )
 
-    def get_permissions(self):
-        if self.action == 'retrieve':
-            return (ReadOnly(),)
-        return super().get_permissions()
 
-
-class FollowViewset(mixins.CreateModelMixin, mixins.ListModelMixin,
-                    viewsets.GenericViewSet):
+class FollowViewset(CreateListViewset):
     """ViewSet модели Follow."""
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
-    permission_classes = (permissions.IsAuthenticated, AuthorOnly,)
+    permission_classes = (permissions.IsAuthenticated, AuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('user', 'following')
     search_fields = ('user__username', 'following__username')
