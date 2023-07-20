@@ -26,7 +26,7 @@ class Post(models.Model):
         verbose_name='Автор поста'
     )
     image = models.ImageField(
-        upload_to='posts/', null=True, blank=True,
+        upload_to='posts/', blank=True,
         verbose_name='Картинка'
     )
     group = models.ForeignKey(
@@ -81,8 +81,12 @@ class Follow(models.Model):
             models.UniqueConstraint(
                 fields=['user', 'following'],
                 name='unique_user_following'
+            ),
+            models.CheckConstraint(
+                name='prevent_self_follow',
+                check=~models.Q(user=models.F('following')),
             )
         ]
 
     def __str__(self):
-        return self.user[:MAX_LENGTH]
+        return self.user.username[:MAX_LENGTH]
