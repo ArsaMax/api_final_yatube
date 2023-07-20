@@ -60,16 +60,6 @@ class CommentViewset(viewsets.ModelViewSet):
             return (ReadOnly(),)
         return super().get_permissions()
 
-#    def perform_update(self, serializer):
- #       if serializer.instance.author != self.request.user:
-  #          raise PermissionDenied('Изменение чужого контента запрещено!')
-   #     super(CommentViewset, self).perform_update(serializer)
-
-#    def perform_destroy(self, instance):
- #       if instance.author != self.request.user:
-  #          raise PermissionDenied('Удаление чужого контента запрещено!')
-   #     super(CommentViewset, self).perform_destroy(instance)
-
 
 class FollowViewset(mixins.CreateModelMixin, mixins.ListModelMixin,
                     viewsets.GenericViewSet):
